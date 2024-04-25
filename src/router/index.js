@@ -53,6 +53,10 @@ export const constantRoutes = [
     component: () => import('@/views/error/401'),
     hidden: true
   },
+  { 
+    path: '/mall',
+    component: () => import('@/views/mall/index'),
+   },
 
   {
     path: '',
@@ -69,40 +73,6 @@ export const constantRoutes = [
   },
 
   {
-    path: '/example',
-    component: Layout,
-    redirect: '/example/table',
-    name: 'Example',
-    meta: { title: 'Example', icon: 'el-icon-s-help' },
-    children: [
-        {
-            path: 'table',
-            name: 'Table',
-            component: () => import('@/views/table/index'),
-            meta: { title: 'Table', icon: 'table' }
-        },
-        {
-            path: 'tree',
-            name: 'Tree',
-            component: () => import('@/views/tree/index'),
-            meta: { title: 'Tree', icon: 'tree' }
-        }
-    ]
-  },
-
-  {
-    path: '/form',
-    component: Layout,
-    children: [
-      {
-        path: 'index',
-        name: 'Form',
-        component: () => import('@/views/form/index'),
-        meta: { title: 'Form', icon: 'form' }
-      }
-    ]
-  },
-  {
     path: '/user',
     component: Layout,
     name: "用户管理",
@@ -115,21 +85,46 @@ export const constantRoutes = [
           }
       ]
   },
+  {
+    path: '/order',
+    component: Layout,
+    name: "订单管理",
+    children: [
+        {
+            path: 'manager',
+            name: 'Order',
+            component: () => import('@/views/order/index'),
+            meta: { title: '订单管理', icon: 'table' }
+        }
+    ]
+  },
 
-  
-    {
-        path: '/product',
-        component: Layout,
-        name: "商品管理",
-        children: [
-            {
-                path: 'manager',
-                name: 'Product',
-                component: () => import('@/views/user/index'),
-                meta: { title: '商品管理', icon: 'table' }
-            }
-        ]
-    },
+  {
+    path: '/product',
+    component: Layout,
+    name: "商品管理",
+    children: [
+        {
+            path: 'manager',
+            name: 'Product',
+            component: () => import('@/views/product/index'),
+            meta: { title: '商品管理', icon: 'table' }
+        }
+    ]
+  },
+  {
+    path: '/operlog',
+    component: Layout,
+    name: "操作日志管理",
+    children: [
+        {
+            path: 'manager',
+            name: 'Operlog',
+            component: () => import('@/views/operlog/index'),
+            meta: { title: '操作日志管理', icon: 'table' }
+        }
+    ]
+  },
 
   {
     path: '/nested',

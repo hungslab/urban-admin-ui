@@ -24,10 +24,14 @@ export function register(data) {
     return request({
         url: '/system/user/register',
         headers: {
-            isToken: false
+            isToken: false,
+            repeatSubmit: false
         },
         method: 'post',
-        data: data
+        data: {
+            username: data.username,
+            password: data.password,
+        }
     })
 }
 
@@ -98,11 +102,11 @@ export function updateUser(data) {
 }
 
 // 删除用户
-export function delUser(userId) {
+export function delUserById(userId) {
     return request({
         url: '/system/user/delete',
         method: 'delete',
-        data: userId
+        params: userId
     })
 }
 

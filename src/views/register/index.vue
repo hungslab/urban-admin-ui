@@ -155,7 +155,7 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100%;
-  background-color: #283443;
+  background-image: url(../../assets/login-bj.png);
   background-size: cover;
 }
 .title {
