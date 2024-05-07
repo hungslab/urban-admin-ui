@@ -32,7 +32,7 @@ export function delProduct(data) {
     return request({
         url: 'system/product/delete',
         method: 'delete',
-        data: data
+        params: data
     })
 }
 

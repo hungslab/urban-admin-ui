@@ -8,7 +8,7 @@ import getPageTitle from '@/utils/get-page-title'
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
-const whiteList = ['/login', '/register', '/mall'] // no redirect whitelist
+const whiteList = ['/login', '/register'] // no redirect whitelist
 
 router.beforeEach(async(to, from, next) => {
   // start progress bar
@@ -51,7 +51,7 @@ router.beforeEach(async(to, from, next) => {
       next()
     } else {
       // 否则全部重定向到登录页
-      next(`/login?redirect=${to.path}`)
+        next(`/login?redirect=${to.path}`)
       NProgress.done()
     }
   }

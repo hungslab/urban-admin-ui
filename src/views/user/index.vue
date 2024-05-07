@@ -1,9 +1,6 @@
 <template>
     <div class="app-container">
         <el-card class="box-card">
-            <el-row :gutter="20">
-                <!--用户数据-->
-                <el-col :span="20" :xs="24">
                     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch"
                         label-width="68px">
                         <el-form-item label="用户名称" prop="userName">
@@ -74,10 +71,11 @@
 
                         <el-table-column label="状态" align="center" key="status" v-if="columns[7].visible">
                             <template slot-scope="scope">
-                                <el-switch v-model="scope.row.status" active-value="0" inactive-value="1"
+                                <el-switch v-model="scope.row.status" active-value="1" inactive-value="0"
                                     @change="handleStatusChange(scope.row)"></el-switch>
                             </template>
                         </el-table-column>
+
                         <el-table-column label="创建时间" align="center" prop="createTime" v-if="columns[8].visible"
                             width="160">
                             <template slot-scope="scope">
@@ -102,31 +100,22 @@
                     </el-table>
 
                     <el-pagination background layout="total, sizes, prev, pager, next, jumper"
-                        :current-page="queryParams.pageNum" :page-size="queryParams.pageSize" :page-sizes="pageSizes"
-                        :total="queryParams.total" @size-change="handleSizeChange" @current-change="handlePageChange" />
-                </el-col>
-            </el-row>
+                        :current-page="queryParams.pageNum" :page-size="queryParams.pageSize" :page-sizes="pageSizes" />
         </el-card>
-
-
-
 
         <!-- 新增用户对话框 -->
         <el-dialog :title="增加用户" :visible.sync="open">
-            <el-form ref="addUserForm" :model="addUserForm" :rules="rules" label-width="100px" class="demo-ruleForm">
+            <el-form ref="addUserForm" :model="addUserForm" :rules="rules" label-width="100px">
                 <el-form-item label="用户名称" prop="userName">
                     <el-input v-model="addUserForm.userName" />
-                </el-form-item>
-                <el-form-item label="密码" prop="password">
-                    <el-input v-model="addUserForm.password" />
                 </el-form-item>
                 <el-form-item label="用户昵称" prop="nickName">
                     <el-input v-model="addUserForm.nickName" />
                 </el-form-item>
                 <el-form-item label="性别" prop="sex">
                     <el-radio-group v-model="addUserForm.sex">
-                        <el-radio label="男" value="男" />
-                        <el-radio label="女" value="女" />
+                        <el-radio label="男" value="1" />
+                        <el-radio label="女" value="0" />
                     </el-radio-group>
                 </el-form-item>
                 <el-form-item label="手机号码" prop="phonenumber">
@@ -137,18 +126,68 @@
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="handleSubmitUser(addUserForm)">提交</el-button>
-                    <el-button @click="resetDialogForm">重置</el-button>
+                    <el-button @click="resetAddDialogForm">重置</el-button>
                 </el-form-item>
             </el-form>
         </el-dialog>
 
+        <!-- 修改用户对话框 -->
+        <el-dialog :title="修改用户信息" :visible.sync="updateDialogVisible" width="50%">
+            <el-form ref="updateForm" :model="selectedUser" :rules="updateRules" label-width="120px"
+                class="update-dialog">
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="用户名称" prop="userName">
+                            <el-input v-model="updateForm.userName" :disabled="true" />
+                        </el-form-item>
+                        <el-form-item label="部门" prop="department">
+                            <el-select v-model="updateForm.deptId" placeholder="请选择">
+                                <el-option v-for="(name, deptId) in departments" :key="deptId" :label="name"
+                                    :value="deptId" />
+                            </el-select>
+
+                        </el-form-item>
+                        <el-form-item label="性别" prop="sex">
+                            <el-radio-group v-model="updateForm.sex">
+                                <el-radio label="男" value="1" />
+                                <el-radio label="女" value="0" />
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item label="手机号码" prop="phonenumber">
+                            <el-input v-model="updateForm.phonenumber" />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="用户昵称" prop="nickName">
+                            <el-input v-model="updateForm.nickName" />
+                        </el-form-item>
+                        <el-form-item label="邮箱" prop="email">
+                            <el-input v-model="updateForm.email" />
+                        </el-form-item>
+                        <el-form-item label="状态" prop="status">
+                            <el-radio-group v-model="updateForm.status">
+                                <el-radio label="正常" value="正常" />
+                                <el-radio label="停用" value="停用" />
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item label="备注" prop="remark">
+                            <el-input v-model="updateForm.remark" />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item>
+                    <el-button type="primary" @click="handleUpdateSubmit(updateForm)">提交</el-button>
+                    <el-button @click="resetUpdateForm">重置</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
 
 
     </div>
 </template>
 
 <script>
-import { listUser, getUser, delUserById, addUser, updateUser } from "@/api/user";
+import { listUser, updateUserPwd, delUserById, addUser, updateUser } from "@/api/user";
 
 export default {
     name: "User",
@@ -156,8 +195,6 @@ export default {
         return {
             // 遮罩层
             loading: true,
-            // 选中数组
-            ids: [],
             // 非单个禁用
             single: true,
             // 非多个禁用
@@ -168,12 +205,62 @@ export default {
             total: 0,
             // 用户表格数据
             userList: null,
-            // 弹出层标题
-            title: "",
             // 是否显示弹出层
             open: false,
-            // 部门名称
-            deptName: undefined,
+            
+            updateDialogVisible: false,
+            updateForm: {
+                userName: '',
+                userId: '',
+                deptId: '',
+                nickName: '',
+                sex: '',
+                phonenumber: '',
+                email: '',
+                remark: ''
+            },
+            originalUserData: {}, // 保存原始用户信息的对象
+            updateRules: {
+                userName: [
+                    { message: "用户名称不能为空", trigger: "blur" },
+                    { min: 2, max: 20, message: '用户名称长度必须介于 2 和 20 之间', trigger: 'blur' }
+                ],
+                department: [
+                    { required: false }
+                ],
+                nickName: [
+                    { message: "用户昵称不能为空", trigger: "blur" }
+                ],
+                email: [
+                    {
+                        type: "email",
+                        message: "请输入正确的邮箱地址",
+                        trigger: ["blur", "change"]
+                    }
+                ],
+                phonenumber: [
+                    {
+                        pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
+                        message: "请输入正确的手机号码",
+                        trigger: "blur"
+                    }
+                ],
+                sex: [
+                    { required: true, trigger: 'blur', message: '请选择性别' }
+                ],
+                status: [
+                ],
+                remark: [
+                    { required: false }
+                ]
+            },
+            departments: {
+                100: '销售部',
+                101: '市场部门',
+                102: '技术部门',
+                103: '财务部门',
+                104: '运维部门'
+            },
             // 查询参数
             queryParams: {
                 pageNum: 1,
@@ -243,14 +330,16 @@ export default {
         /** 查询用户列表 */
         getList() {
             this.loading = true;
-            listUser((this.queryParams)).then(response => {
+            listUser(this.queryParams).then(response => {
                 this.userList = response.data;
-                this.total = 6;
                 this.loading = false;
             }
             );
         },
 
+        
+
+        
         // 筛选节点
         filterNode(value, data) {
             if (!value) return true;
@@ -259,20 +348,34 @@ export default {
 
         // 用户状态修改
         handleStatusChange(row) {
-            let text = row.status === "0" ? "启用" : "停用";
-            this.$modal.confirm('确认要"' + text + '""' + row.userName + '"用户吗？').then(function () {
-                return changeUserStatus(row.userId, row.status);
+            let text = row.status === "1" ? "启用" : "停用";
+            this.$confirm('确认要' +' ' + text + ' ' + row.userName + ' 用户吗？', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
             }).then(() => {
-                this.$modal.msgSuccess(text + "成功");
-            }).catch(function () {
-                row.status = row.status === "0" ? "1" : "0";
+                const data = {
+                    userId: row.userId,
+                    userName: row.userName,
+                    status: row.status == "1" ? "1" : "0"
+                }
+                updateUser(data).then(() => {
+                    this.getList();
+                }).catch(() => {
+                });
+                this.$message({
+                    type: 'success',
+                    message: '更新成功!'
+                });
+            }).catch(() => {
+                this.getList()
+                this.$message({
+                    type: 'info',
+                    message: '已取消更新'
+                });
             });
         },
-        // 取消按钮
-        cancel() {
-            this.open = false;
-            this.reset();
-        },
+
         // 表单重置
         reset() {
             this.form = {
@@ -305,13 +408,6 @@ export default {
             this.handleQuery();
         },
 
-        // 多选框选中数据
-        handleSelectionChange(selection) {
-            this.ids = selection.map(item => item.userId);
-            this.single = selection.length != 1;
-            this.multiple = !selection.length;
-        },
-
         // 更多操作触发
         handleCommand(command, row) {
             switch (command) {
@@ -322,6 +418,7 @@ export default {
                     break;
             }
         },
+
         /** 新增按钮操作 */
         handleAdd() {
             this.reset();
@@ -361,19 +458,21 @@ export default {
             // 进行表单验证
             this.$refs.addUserForm.validate(valid => {
                 if (valid) {
+                    // 密码为默认密码
+                    addUserForm.password == "123456"
                     // 如果表单验证通过，则执行提交操作
                     addUser(addUserForm).then(response => {
                         // 成功保存数据后的操作
-                        this.$message.success('提交成功');
+                        this.$message.success('添加成功, 默认密码为：123456');
                         // 清空表单数据
-                        this.resetForm('ruleForm');
+                        this.resetForm('addUserForm');
                         this.getList();
                         // 关闭对话框
                         this.open = false;
                     })
                         .catch(error => {
                             // 处理保存失败的情况
-                            this.$message.error('提交失败，请稍后重试');
+                            this.$message.error('添加失败，请稍后重试');
                         });
 
                 } else {
@@ -384,21 +483,91 @@ export default {
             });
         },
 
+        handleConfirm(updatForm) {
+            // 将前端表单数据转换为符合后端接口要求的数据格式
+            const data = {
+                userName: updatForm.userName,
+                password: updatForm.password,
+                nickName: updatForm.nickName,
+                sex: updatForm.sex,
+                phonenumber: updatForm.phonenumber,
+                deptId: updatForm.dept,
+                email: updatForm.email
+            };
 
-        /** 修改按钮操作 */
-        handleUpdate(row) {
-            this.reset();
-            const userId = row.userId || this.ids;
-            getUser(userId).then(response => {
-                this.form = response.data;
-                this.postOptions = response.posts;
-                this.roleOptions = response.roles;
-                this.$set(this.form, "postIds", response.postIds);
-                this.$set(this.form, "roleIds", response.roleIds);
-                this.open = true;
-                this.title = "修改用户";
-                this.form.password = "";
+            updateUser(data).then(response => {
+                // 处理正常响应
+                if (response.status) {
+                    this.$message({
+                        type: 'success',
+                        message: '更新成功!',
+                        duration: 200,
+                        onClose: () => {
+                            this.Updateopen = false; // 关闭编辑对话框
+                            // 重新加载表格
+                            this.searchAllUser();
+                        }
+                    });
+                } else {
+                    // 处理后端返回的错误信息
+                    this.$message.error(response.message);
+                }
+            }).catch(error => {
+                // 处理请求过程中的异常
+                this.$message.error('更新用户失败，请重试');
+                console.error('Update User Error:', error);
             });
+        },
+
+        handleUpdate(row) {
+            // 设置 updateDialogVisible 为 true，显示修改对话框。
+            this.updateDialogVisible = true;
+            // 设置 updateForm 对象，用于回显用户信息
+            this.updateForm = {
+                userName: row.userName,
+                userId: row.userId,
+                deptId: row.deptId || row.department, // 确保从 row 对象中提取 deptId 或 department 字段
+                nickName: row.nickName,
+                sex: row.sex,
+                phonenumber: row.phonenumber,
+                email: row.email,
+                remark: row.remark
+            };
+            // 将最初的用户信息保存到 originalUserData 中
+            this.originalUserData = { ...this.updateForm };
+        },
+        
+        handleUpdateSubmit(formData) {
+            // 删除不需要的字段
+            delete formData.department;
+            delete formData.userName;
+            // 调用后端 API 更新用户信息
+            updateUser(formData)
+                .then(response => {
+                    // 更新成功后的处理
+                    this.$message.success('用户信息更新成功');
+                })
+                .catch(error => {
+                    // 更新失败后的处理
+                    this.$message.error('用户信息更新失败');
+                });
+            this.updateDialogVisible = false;
+        },
+        resetUpdateForm() {
+            // 点击重置按钮时，将原始用户信息重新赋值给表单
+            this.updateForm = { ...this.originalUserData };
+        },
+
+        // 新增用户表单重置
+        resetAddDialogForm() {
+            this.addUserForm = {
+                userName: '',
+                password: '',
+                nickName: '',
+                sex: '',
+                phonenumber: '',
+                email: ''
+            }
         },
         /** 重置密码按钮操作 */
         handleResetPwd(row) {
@@ -414,8 +583,8 @@ export default {
                     }
                 },
             }).then(({ value }) => {
-                resetUserPwd(row.userId, value).then(response => {
-                    this.$modal.msgSuccess("修改成功，新密码是：" + value);
+                updateUserPwd(row.userId, value).then(response => {
+                    this.$message.success("修改成功，新密码是：" + value);
                 });
             }).catch(() => { });
         },

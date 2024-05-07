@@ -18,7 +18,7 @@
           <svg-icon slot="prefix" icon-class="password" class="el-input__icon input-icon" />
         </el-input>
       </el-form-item>
-      <el-form-item prop="confirmPassword">
+      <!-- <el-form-item prop="confirmPassword">
         <el-input
           v-model="registerForm.confirmPassword"
           type="password"
@@ -28,7 +28,18 @@
         >
           <svg-icon slot="prefix" icon-class="password" class="el-input__icon input-icon" />
         </el-input>
-      </el-form-item>
+      </el-form-item> -->
+        <el-form-item prop="merchantCode">
+            <el-input
+            v-model="registerForm.merchantCode"
+            type="password"
+            auto-complete="off"
+            placeholder="请输入商家码"
+            @keyup.enter.native="handleRegister"
+            >
+            <svg-icon slot="prefix" icon-class="merchantCode" class="el-input__icon input-icon" />
+            </el-input>
+        </el-form-item>
       <el-form-item prop="code" v-if="captchaEnabled">
         <el-input
           v-model="registerForm.code"
@@ -85,7 +96,7 @@ export default {
       registerForm: {
         username: "",
         password: "",
-        confirmPassword: ""
+        // confirmPassword: ""
       },
       registerRules: {
         username: [

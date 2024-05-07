@@ -1,9 +1,7 @@
 <template>
     <div class="app-container">
         <el-card class="box-card">
-            <el-row :gutter="20">
-                <!--商品数据-->
-                <el-col :span="20" :xs="24">
+            
                     <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch"
                         label-width="68px">
                         <el-form-item label="商品名称" prop="productName">
@@ -32,8 +30,8 @@
                                 @click="handleAdd">新增</el-button>
                         </el-col>
                         <el-col :span="1.5">
-                            <el-button type="success" plain icon="el-icon-edit" size="mini" :disabled="single"
-                                @click="handleUpdate">修改</el-button>
+                            <!-- <el-button type="success" plain icon="el-icon-edit" size="mini" :disabled="single"
+                                @click="handleUpdate">修改</el-button> -->
                         </el-col>
                         <el-col :span="1.5">
                             <el-button type="danger" plain icon="el-icon-delete" size="mini" :disabled="multiple"
@@ -48,25 +46,25 @@
                         <el-table-column label="商品编号" align="center" key="productId" prop="productId"
                             v-if="columns[0].visible" />
                         <el-table-column label="商品名称" align="center" key="productName" prop="productName"
-                            v-if="columns[1].visible" :show-overflow-tooltip="true" />
+                            v-if="columns[1].visible" width="200" :show-overflow-tooltip="true" />
                         <el-table-column label="商品标题" align="center" key="productTitle" prop="productTitle"
-                            v-if="columns[2].visible" />
+                            v-if="columns[2].visible" width="200" :show-overflow-tooltip="true" />
                         <el-table-column label="商品图片" align="center" key="productAvatar" v-if="columns[3].visible">
                             <template slot-scope="scope">
                                 <img :src="scope.row.productAvatar"
-                                    style="width: 50px; height: 50px; border-radius: 20%;">
+                                    style="width: 50px; height: 50px; border-radius: 20%" />
                             </template>
                         </el-table-column>
                         <el-table-column label="商品价格" align="center" key="productPrice" prop="productPrice"
                             v-if="columns[4].visible" />
                         <el-table-column label="商品数量" align="center" key="productCount" prop="productCount"
-                            v-if="columns[5].visible" width="120" />
+                            v-if="columns[5].visible"/>
                         <el-table-column label="商品销售数量" align="center" key="productSaleCount" prop="productSaleCount"
-                            v-if="columns[6].visible" width="120" />
+                            v-if="columns[6].visible"/>
 
-                        <el-table-column label="状态" align="center" key="productStatus" v-if="columns[7].visible">
+                        <el-table-column label="上架状态" align="center" key="productStatus" v-if="columns[7].visible">
                             <template slot-scope="scope">
-                                <el-switch v-model="scope.row.productStatus" active-value="0" inactive-value="1"
+                                <el-switch v-model="scope.row.productStatus" active-value="1" inactive-value="0"
                                     @change="handleStatusChange(scope.row)"></el-switch>
                             </template>
                         </el-table-column>
@@ -83,6 +81,11 @@
                                     @click="handleUpdate(scope.row)">修改</el-button>
                                 <el-button size="mini" type="text" icon="el-icon-delete"
                                     @click="handleDelete(scope.row)">删除</el-button>
+                                <el-button size="mini" type="text" @click="payClick()">支付</el-button>
+                                <el-button v-if="scope.row.productCount <= 100" size="mini" type="danger">
+                                    当前商品库存紧张!!!
+                                </el-button>
+
                             </template>
                         </el-table-column>
                     </el-table>
@@ -90,118 +93,108 @@
                     <el-pagination background layout="total, sizes, prev, pager, next, jumper"
                         :current-page="queryParams.pageNum" :page-size="queryParams.pageSize" :page-sizes="pageSizes"
                         :total="this.total" @size-change="handleSizeChange" @current-change="handlePageChange" />
-                </el-col>
-            </el-row>
+
         </el-card>
 
+        <!-- 新增商品对话框 -->
+        <el-dialog :title="增加商品" :visible.sync="addopen">
+            <el-form ref="addProductForm" :model="addProductForm" :rules="rules" label-width="100px"
+                class="demo-ruleForm">
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="商品名称" prop="productName">
+                            <el-input v-model="addProductForm.productName" placeholder="请输入商品名称" maxlength="30" />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="商品标题" prop="productTitle">
+                            <el-input v-model="addProductForm.productTitle" placeholder="请输入商品标题" maxlength="30" />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="商品价格" prop="productPrice">
+                            <el-input v-model="addProductForm.productPrice" placeholder="请输入商品价格" maxlength="11" />
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="商品数量" prop="productCount">
+                            <el-input v-model="addProductForm.productCount" placeholder="请输入商品数量" maxlength="50" />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="16">
+                        <el-form-item label="商品销售数量" prop="productSaleCount">
+                            <el-input v-model="addProductForm.productSaleCount" placeholder="请输入商品销售数量"
+                                maxlength="50" />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item>
+                    <el-button type="primary" @click="handleAddSubmit(addProductForm)">提交</el-button>
+                    <el-button @click="resetAddDialogForm">重置</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
 
-
-
-        <!-- 添加或修改用户配置对话框 -->
-        <!-- <el-dialog :title="title" :visible.sync="open" width="600px" append-to-body>
-            <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <!-- 修改订单配置对话框 -->
+        <el-dialog :title="修改订单" :visible.sync="uploadopen" append-to-body>
+            <el-form ref="updateForm" :model="updateForm" :rules="rules" label-width="100px">
                 <el-row>
                     <el-col :span="12">
-                        <el-form-item label="用户昵称" prop="nickName">
-                            <el-input v-model="form.nickName" placeholder="请输入用户昵称" maxlength="30" />
+                        <el-form-item label="商品名称" prop="productName">
+                            <el-input v-model="updateForm.productName" placeholder="请输入商品名称" maxlength="30" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="归属部门" prop="deptId">
-                            <treeselect v-model="form.deptId" :options="deptOptions" :show-count="true"
-                                placeholder="请选择归属部门" />
+                        <el-form-item label="商品标题" prop="productTitle">
+                            <el-input v-model="updateForm.productTitle" placeholder="请输入商品标题" maxlength="30" />
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row>
                     <el-col :span="12">
-                        <el-form-item label="手机号码" prop="phonenumber">
-                            <el-input v-model="form.phonenumber" placeholder="请输入手机号码" maxlength="11" />
+                        <el-form-item label="商品价格" prop="productPrice">
+                            <el-input v-model="updateForm.productPrice" placeholder="请输入商品价格" maxlength="11" />
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="邮箱" prop="email">
-                            <el-input v-model="form.email" placeholder="请输入邮箱" maxlength="50" />
+                        <el-form-item label="商品数量" prop="productCount">
+                            <el-input v-model="updateForm.productCount" placeholder="请输入商品数量" maxlength="50" />
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row>
-                    <el-col :span="12">
-                        <el-form-item v-if="form.userId == undefined" label="用户名称" prop="userName">
-                            <el-input v-model="form.userName" placeholder="请输入用户名称" maxlength="30" />
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item v-if="form.userId == undefined" label="用户密码" prop="password">
-                            <el-input v-model="form.password" placeholder="请输入用户密码" type="password" maxlength="20"
-                                show-password />
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="12">
-                        <el-form-item label="用户性别">
-                            <el-select v-model="form.sex" placeholder="请选择性别">
-                                <el-option v-for="dict in dict.type.sys_user_sex" :key="dict.value" :label="dict.label"
-                                    :value="dict.value"></el-option>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="状态">
-                            <el-radio-group v-model="form.status">
-                                <el-radio v-for="dict in dict.type.sys_normal_disable" :key="dict.value"
-                                    :label="dict.value">{{dict.label}}</el-radio>
-                            </el-radio-group>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="12">
-                        <el-form-item label="岗位">
-                            <el-select v-model="form.postIds" multiple placeholder="请选择岗位">
-                                <el-option v-for="item in postOptions" :key="item.postId" :label="item.postName"
-                                    :value="item.postId" :disabled="item.status == 1"></el-option>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="角色">
-                            <el-select v-model="form.roleIds" multiple placeholder="请选择角色">
-                                <el-option v-for="item in roleOptions" :key="item.roleId" :label="item.roleName"
-                                    :value="item.roleId" :disabled="item.status == 1"></el-option>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="24">
-                        <el-form-item label="备注">
-                            <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"></el-input>
+                    <el-col :span="16">
+                        <el-form-item label="商品销售数量" prop="productSaleCount">
+                            <el-input v-model="updateForm.productSaleCount" placeholder="请输入商品销售数量" maxlength="50" />
                         </el-form-item>
                     </el-col>
                 </el-row>
             </el-form>
             <div slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="submitForm">确 定</el-button>
+                <el-button type="primary" @click="handleUploadSubmit(updateForm)">确 定</el-button>
                 <el-button @click="cancel">取 消</el-button>
             </div>
-        </el-dialog> -->
-
+        </el-dialog>
     </div>
 </template>
 
 <script>
-import { listProduct, addProduct, updateProduct, delProduct } from "@/api/product";
+import {
+    listProduct,
+    addProduct,
+    updateProduct,
+    delProduct,
+} from "@/api/product";
 
 export default {
     name: "Product",
     data() {
         return {
+            dateRange: [],
             // 遮罩层
             loading: true,
-            // 选中数组
-            ids: [],
             // 非单个禁用
             single: true,
             // 非多个禁用
@@ -210,19 +203,16 @@ export default {
             showSearch: true,
             // 总条数
             total: 6,
-            // 用户表格数据
+            // 商品表格数据
             productList: null,
-            // 弹出层标题
-            title: "",
             // 是否显示弹出层
-            open: false,
+            addopen: false,
+            uploadopen: false,
+            title: "",
             // 查询参数
             queryParams: {
-                pageNum: 1,
-                pageSize: 10,
                 productName: undefined,
                 productTitle: undefined,
-                productStatus: undefined
             },
             // 列信息
             columns: [
@@ -234,29 +224,61 @@ export default {
                 { key: 5, label: `商品数量`, visible: true },
                 { key: 6, label: `商品销售数量`, visible: true },
                 { key: 7, label: `状态`, visible: true },
-                { key: 8, label: `创建时间`, visible: true }
+                { key: 8, label: `创建时间`, visible: true },
             ],
             // 表单校验
             rules: {
-                
-            }
+                productName: [{ required: true, message: "请输入商品名称", trigger: "blur" }],
+                productTitle: [{ required: true, message: "请输入商品标题", trigger: "blur" }],
+                productPrice: [{ required: true, message: "请输入商品价格", trigger: "blur" }],
+                productCount: [{ required: true, message: "请输入商品数量", trigger: "blur" }],
+                productSaleCount: [{ required: true, message: "请输入商品销售数量", trigger: "blur" }],
+            },
+
+            originalProductData: {
+                productName: undefined,
+                productTitle: undefined,
+                productPrice: undefined,
+                productCount: undefined,
+                productSaleCount: undefined,
+            },
+
+            addProductForm: {
+                productName: '',
+                productTitle: '',
+                productPrice: '',
+                productCount: '',
+                productSaleCount: '',
+            },
+
+            updateForm: {
+                productId: undefined,
+                productName: undefined,
+                productTitle: undefined,
+                productAvatar: undefined,
+                productPrice: undefined,
+                productCount: undefined,
+                productSaleCount: undefined,
+                productStatus: undefined,
+            },
         };
     },
-    watch: {
-
-    },
+    watch: {},
     created() {
         this.getList();
     },
     methods: {
+        payClick() {
+            this.$router.push("/pay");
+        },
+
         /** 查询商品列表 */
         getList() {
             this.loading = true;
-            listProduct((this.queryParams)).then(response => {
+            listProduct(this.queryParams).then((response) => {
                 this.productList = response.data;
                 this.loading = false;
-            }
-            );
+            });
         },
 
         // 筛选节点
@@ -265,20 +287,40 @@ export default {
             return data.label.indexOf(value) !== -1;
         },
 
+
         // 商品状态修改
         handleStatusChange(row) {
-            let text = row.productStatus === "0" ? "启用" : "停用";
-            this.$modal.confirm('确认要"' + text + '""' + row.productName + '"商品吗？').then(function () {
-                return changeProductStatus(row.productId, row.productStatus);
+            let text = row.status === "1" ? "上架" : "下架";
+            this.$confirm('确认要' + ' ' + text + ' ' + row.productName + ' 商品吗？', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
             }).then(() => {
-                this.$modal.msgSuccess(text + "成功");
-            }).catch(function () {
-                row.productStatus = row.productStatus === "0" ? "1" : "0";
+                const data = {
+                    productId: row.productId,
+                    productStatus: row.productStatus == "1" ? "1" : "0"
+                }
+                updateProduct(data).then(() => {
+                    this.getList();
+                }).catch(() => {
+                });
+                this.$message({
+                    type: 'success',
+                    message: '更新成功!'
+                });
+            }).catch(() => {
+                this.getList()
+                this.$message({
+                    type: 'info',
+                    message: '已取消更新'
+                });
             });
         },
+        
         // 取消按钮
         cancel() {
-            this.open = false;
+            this.addopen = false;
+            this.uploadopen = false;
             this.reset();
         },
         // 表单重置
@@ -308,56 +350,120 @@ export default {
             this.handleQuery();
         },
 
-        // 多选框选中数据
-        handleSelectionChange(selection) {
-            this.ids = selection.map(item => item.userId);
-            this.single = selection.length != 1;
-            this.multiple = !selection.length;
+        resetAddDialogForm() {
+            this.addProductForm = {
+                productName: undefined,
+                productTitle: undefined,
+                productPrice: undefined,
+                productCount: undefined,
+                productSaleCount: undefined,
+            };
         },
 
         /** 新增按钮操作 */
         handleAdd() {
             this.reset();
-            this.open = true;
+            this.addopen = true;
         },
 
         // 删除一条信息
         handleDelete(row) {
-            this.$confirm('确定删除当前用户的信息, 是否继续?', '提示', {
-                confirmButtonText: '确定',
-                cancelButtonText: '取消',
-                type: 'warning'
-            }).then(() => {
-                delUserById({ userId: row.userId }).then(() => {
-                    this.getList();
-                }).catch(() => {
+            this.$confirm("确定删除当前商品的信息, 是否继续?", "提示", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning",
+            })
+                .then(() => {
+                    delProduct({ productId: row.productId })
+                        .then(() => {
+                            this.getList();
+                        })
+                        .catch(() => { });
+                    this.$message({
+                        type: "success",
+                        message: "删除成功!",
+                    });
+                })
+                .catch(() => {
+                    this.$message({
+                        type: "info",
+                        message: "已取消删除",
+                    });
                 });
-                this.$message({
-                    type: 'success',
-                    message: '删除成功!'
-                });
-            }).catch(() => {
-                this.$message({
-                    type: 'info',
-                    message: '已取消删除'
-                });
-            });
         },
-        
+
         /** 修改按钮操作 */
         handleUpdate(row) {
-            this.reset();
-            const userId = row.userId || this.ids;
-            getUser(userId).then(response => {
-                this.form = response.data;
-                this.postOptions = response.posts;
-                this.roleOptions = response.roles;
-                this.$set(this.form, "postIds", response.postIds);
-                this.$set(this.form, "roleIds", response.roleIds);
-                this.open = true;
-                this.title = "修改用户";
-                this.form.password = "";
+            // 设置 updateDialogVisible 为 true，显示修改对话框。
+            this.uploadopen = true;
+            // 设置 updateForm 对象，用于回显用户信息
+            this.updateForm = {
+                productId: row.productId,
+                productName: row.productName,
+                productTitle: row.productTitle,
+                productPrice: row.productPrice,
+                productCount: row.productCount,
+                productSaleCount: row.productSaleCount
+            };
+            // 将最初的用户信息保存到 originalUserData 中
+            this.originalProductData = { ...this.updateForm };
+        },
+
+        // 新增商品
+        handleAddSubmit(addProductForm) {
+            // 首先检查订单名称是否为空
+            if (!addProductForm.productName) {
+                this.$message.error("请填写商品名称");
+                return;
+            }
+            // 进行表单验证
+            this.$refs.addProductForm.validate((valid) => {
+                if (valid) {
+                    // 如果表单验证通过，则执行提交操作
+                    addProduct(addProductForm)
+                        .then((response) => {
+                            // 成功保存数据后的操作
+                            this.$message.success("提交成功");
+                            // 清空表单数据
+                            this.resetForm("addProductForm");
+                            this.getList();
+                            // 关闭对话框
+                            this.addopen = false;
+                        })
+                        .catch((error) => {
+                            // 处理保存失败的情况
+                            this.$message.error("提交失败，请稍后重试");
+                        });
+                } else {
+                    // 如果表单验证失败，则给出相应的提示
+                    this.$message.error("表单验证失败，请检查输入");
+                    return false;
+                }
             });
+
+        },
+
+        // 提交
+        handleUploadSubmit(updateForm) {
+            updateProduct(updateForm).then(response => {
+                // 处理正常响应
+                if (response.code === 200) {
+                    this.$message.success('订单信息更新成功');
+                    this.getList();
+                } else {
+                    // 处理后端返回的错误信息
+                    this.$message.error(response.msg);
+                }
+            }).catch(error => {
+                // 处理请求过程中的异常
+                this.$message.error('更新订单失败，请重试');
+            });
+            this.uploadopen = false;
+        },
+
+        resetUpdateForm() {
+            // 点击重置按钮时，将原始用户信息重新赋值给表单
+            this.updateForm = { ...this.originalProductData };
         },
     }
 };

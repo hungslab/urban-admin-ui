@@ -9,11 +9,12 @@ export function listOperLog(data) {
     })
 }
 
-// 删除商品
+
+// 删除
 export function delOperLog(data) {
     return request({
-        url: 'system/operlog/delete',
-        method: 'delete',
+        url: 'system/operlog/remove',
+        method: 'post',
         data: data
     })
 }

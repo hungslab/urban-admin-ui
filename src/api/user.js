@@ -52,34 +52,12 @@ export function logout() {
     })
 }
 
-// 获取验证码
-export function getCodeImg() {
-    return request({
-        url: '/captchaImage',
-        headers: {
-            isToken: false
-        },
-        method: 'get',
-        timeout: 20000
-    })
-}
-
-
-
 // 查询用户列表
 export function listUser(query) {
     return request({
         url: '/system/user/list',
         method: 'post',
         data: query
-    })
-}
-
-// 查询用户详细
-export function getUser(userId) {
-    return request({
-        url: '/system/user/' + parseStrEmpty(userId),
-        method: 'get'
     })
 }
 
@@ -110,3 +88,15 @@ export function delUserById(userId) {
     })
 }
 
+// 更新用户密码
+export function updateUserPwd(userId, password) {
+    const data = {
+        userId,
+        password
+    }
+    return request({
+        url: '/system/user/resetpwd',
+        method: 'put',
+        data: data
+    })
+}
